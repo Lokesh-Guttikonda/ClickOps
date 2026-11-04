@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terradrift-ai"
+version = "0.1.0"
+description = "Autonomous Terraform ClickOps drift reconciler: detect drift, find who made it in CloudTrail, patch the HCL, open a PR."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["terraform", "drift", "clickops", "cloudtrail", "github-actions", "aws", "iac"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Console",
+    "Topic :: System :: Systems Administration",
+    "Intended Audience :: System Administrators",
+]
+# httpx is only imported for LLM providers and GitHub API calls; PROVIDER=mock needs nothing.
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+terradrift = "terradrift.cli:main"
+
+[project.urls]
+Repository = "https://github.com/Lokesh-Guttikonda/ClickOps"
+
+[tool.setuptools]
+# The code lives in src/ (importable as `src` inside a clone) and installs as `terradrift`.
+package-dir = { "terradrift" = "src" }
+packages = ["terradrift"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["demo_output"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = ["SIM108"]

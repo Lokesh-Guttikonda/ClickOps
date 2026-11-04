@@ -1,0 +1,135 @@
+name: terradrift-ai
+description: >-
+  Detect Terraform drift caused by manual (ClickOps) changes, find who made them in
+  CloudTrail, patch the HCL to match, and open a pull request with an audit trail.
+branding:
+  icon: git-pull-request
+  color: orange
+
+inputs:
+  working-directory:
+    description: Terraform root module to check. Run `terraform init` there first.
+    default: "."
+  provider:
+    description: "Patch engine: mock (deterministic, offline), groq, gemini or anthropic. Pass the API key as an env var."
+    default: mock
+  llm-patch-mode:
+    description: "fallback (LLM patches only what the rules engine can't) or always."
+    default: fallback
+  cloudtrail:
+    description: "auto, aws, mock or off."
+    default: auto
+  cloudtrail-events:
+    description: Saved `aws cloudtrail lookup-events` JSON for offline attribution (implies cloudtrail=mock).
+    default: ""
+  aws-region:
+    description: Region for CloudTrail lookups. Defaults to AWS_REGION.
+    default: ""
+  lookback-hours:
+    description: How far back to search CloudTrail (event history covers 90 days).
+    default: "168"
+  ignore-principals:
+    description: Comma separated globs of principals whose changes are not ClickOps, e.g. your CI deploy role.
+    default: ""
+  plan-json:
+    description: Use an existing `terraform show -json` file instead of running `terraform plan`.
+    default: ""
+  refresh-only:
+    description: Run `terraform plan -refresh-only`.
+    default: "false"
+  create-pr:
+    description: >-
+      Commit the patch to a branch and open (or refresh) a pull request. With "false" the
+      patched files are just written to the workspace.
+    default: "true"
+  base-branch:
+    description: PR base branch. Defaults to the repository's default branch.
+    default: ""
+  labels:
+    description: Comma separated PR labels.
+    default: "drift,clickops"
+  draft:
+    description: Open the PR as a draft.
+    default: "false"
+  fail-on-drift:
+    description: Fail the step (exit 3) when drift is found.
+    default: "false"
+  github-token:
+    description: Token used to push the branch and open the PR (needs contents and pull-requests write).
+    default: ${{ github.token }}
+  python-version:
+    description: Python used to run terradrift.
+    default: "3.12"
+
+outputs:
+  drift-detected:
+    description: "true when ClickOps drift was found."
+    value: ${{ steps.terradrift.outputs.drift-detected }}
+  risk:
+    description: "Highest risk level: none, info, low, medium, high or critical."
+    value: ${{ steps.terradrift.outputs.risk }}
+  fingerprint:
+    description: Stable id of the detected drift.
+    value: ${{ steps.terradrift.outputs.fingerprint }}
+  pr-url:
+    description: URL of the created or refreshed pull request.
+    value: ${{ steps.terradrift.outputs.pr-url }}
+  summary-file:
+    description: Path of the Markdown report.
+    value: ${{ steps.terradrift.outputs.summary-file }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install terradrift-ai
+      shell: bash
+      run: python -m pip install --disable-pip-version-check --quiet "$GITHUB_ACTION_PATH"
+
+    - name: Reconcile drift
+      id: terradrift
+      shell: bash
+      # Inputs are passed through env vars, never interpolated into the script.
+      env:
+        TD_WORKDIR: ${{ inputs.working-directory }}
+        TD_PROVIDER: ${{ inputs.provider }}
+        LLM_PATCH_MODE: ${{ inputs.llm-patch-mode }}
+        TD_CLOUDTRAIL: ${{ inputs.cloudtrail }}
+        TD_CLOUDTRAIL_EVENTS: ${{ inputs.cloudtrail-events }}
+        TD_AWS_REGION: ${{ inputs.aws-region }}
+        TD_LOOKBACK: ${{ inputs.lookback-hours }}
+        TERRADRIFT_IGNORE_PRINCIPALS: ${{ inputs.ignore-principals }}
+        TD_PLAN_JSON: ${{ inputs.plan-json }}
+        TD_REFRESH_ONLY: ${{ inputs.refresh-only }}
+        TD_CREATE_PR: ${{ inputs.create-pr }}
+        TD_BASE: ${{ inputs.base-branch }}
+        TD_LABELS: ${{ inputs.labels }}
+        TD_DRAFT: ${{ inputs.draft }}
+        TD_FAIL_ON_DRIFT: ${{ inputs.fail-on-drift }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+        summary="${RUNNER_TEMP}/terradrift-summary.md"
+        args=(reconcile -C "$TD_WORKDIR" --provider "$TD_PROVIDER" --cloudtrail "$TD_CLOUDTRAIL"
+              --lookback-hours "$TD_LOOKBACK" --summary-file "$summary"
+              --json-file "${RUNNER_TEMP}/terradrift-report.json")
+        if [[ -n "$TD_CLOUDTRAIL_EVENTS" ]]; then args+=(--cloudtrail-events "$TD_CLOUDTRAIL_EVENTS"); fi
+        if [[ -n "$TD_AWS_REGION" ]]; then args+=(--aws-region "$TD_AWS_REGION"); fi
+        if [[ -n "$TD_PLAN_JSON" ]]; then args+=(--plan-json "$TD_PLAN_JSON"); fi
+        if [[ "$TD_REFRESH_ONLY" == "true" ]]; then args+=(--refresh-only); fi
+        if [[ "$TD_FAIL_ON_DRIFT" == "true" ]]; then args+=(--fail-on-drift); fi
+        if [[ "$TD_CREATE_PR" == "true" ]]; then
+          args+=(--create-pr)
+          if [[ -n "$TD_BASE" ]]; then args+=(--base "$TD_BASE"); fi
+          if [[ "$TD_DRAFT" == "true" ]]; then args+=(--draft); fi
+          IFS=',' read -ra labels <<< "$TD_LABELS"
+          for label in "${labels[@]}"; do
+            label="$(echo "$label" | xargs)"
+            if [[ -n "$label" ]]; then args+=(--label "$label"); fi
+          done
+        fi
+        # With create-pr: false the patched files are left in the workspace for your own tooling.
+        terradrift "${args[@]}"

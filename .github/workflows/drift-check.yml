@@ -1,0 +1,121 @@
+# Scheduled ClickOps drift detection.
+#
+# * Until you set the repository variable AWS_ROLE_ARN, this runs the offline demo
+#   (examples/) so you can see the report in the job summary with zero setup.
+# * With AWS_ROLE_ARN set, it plans your real Terraform via GitHub OIDC, attributes drift
+#   with CloudTrail and opens a pull request that codifies it.
+#
+# Repository variables (Settings -> Secrets and variables -> Actions -> Variables):
+#   AWS_ROLE_ARN                  IAM role trusted for GitHub OIDC (read-only + cloudtrail:LookupEvents)
+#   AWS_REGION                    default us-east-1
+#   TF_WORKING_DIR                Terraform root module, default "."
+#   TERRADRIFT_PROVIDER           mock (default) | groq | gemini | anthropic
+#   TERRADRIFT_IGNORE_PRINCIPALS  e.g. "terraform-ci,arn:aws:iam::*:role/deploy-*"
+# Secrets (only for LLM providers): GROQ_API_KEY, GEMINI_API_KEY, ANTHROPIC_API_KEY
+name: drift-check
+
+on:
+  schedule:
+    - cron: "17 */6 * * *" # every 6 hours, off the top of the hour
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto = live when AWS_ROLE_ARN is set, otherwise demo"
+        type: choice
+        options: [auto, demo, live]
+        default: auto
+      provider:
+        description: Patch engine
+        type: choice
+        options: [mock, groq, gemini, anthropic]
+        default: mock
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terradrift-drift-check
+  cancel-in-progress: false
+
+jobs:
+  live:
+    name: Drift check (AWS)
+    if: (vars.AWS_ROLE_ARN != '' && inputs.mode != 'demo') || inputs.mode == 'live'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # push the terradrift/drift-* branch
+      pull-requests: write # open / refresh the PR
+      id-token: write # GitHub OIDC -> AWS
+    env:
+      TF_DIR: ${{ vars.TF_WORKING_DIR || '.' }}
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false # the wrapper corrupts `terraform show -json` output
+
+      - name: terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -input=false -lock=false
+
+      - name: Reconcile drift
+        id: terradrift
+        uses: ./
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          working-directory: ${{ env.TF_DIR }}
+          provider: ${{ inputs.provider || vars.TERRADRIFT_PROVIDER || 'mock' }}
+          aws-region: ${{ env.AWS_REGION }}
+          ignore-principals: ${{ vars.TERRADRIFT_IGNORE_PRINCIPALS }}
+          create-pr: "true"
+
+      - name: Result
+        if: always()
+        env:
+          DRIFT: ${{ steps.terradrift.outputs.drift-detected }}
+          RISK: ${{ steps.terradrift.outputs.risk }}
+          PR_URL: ${{ steps.terradrift.outputs.pr-url }}
+        run: echo "drift=${DRIFT:-unknown} risk=${RISK:-unknown} pr=${PR_URL:-none}"
+
+  demo:
+    name: Drift check (offline demo)
+    if: (vars.AWS_ROLE_ARN == '' && inputs.mode != 'live') || inputs.mode == 'demo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconcile the example ClickOps drift (no AWS, no API keys)
+        id: terradrift
+        uses: ./
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          working-directory: examples
+          plan-json: examples/drifted_plan.json
+          cloudtrail-events: examples/cloudtrail_events.json
+          provider: ${{ inputs.provider || 'mock' }}
+          create-pr: "false"
+
+      - name: Show the patch
+        run: git --no-pager diff --color=always -- examples/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terradrift-demo-report
+          path: |
+            ${{ runner.temp }}/terradrift-summary.md
+            ${{ runner.temp }}/terradrift-report.json
