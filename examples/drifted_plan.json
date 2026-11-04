@@ -1,0 +1,537 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "timestamp": "2026-11-04T06:00:00Z",
+  "applyable": true,
+  "complete": true,
+  "errored": false,
+  "variables": {
+    "aws_region": {
+      "value": "us-east-1"
+    },
+    "vpc_id": {
+      "value": "vpc-0a1b2c3d4e5f67890"
+    }
+  },
+  "resource_drift": [
+    {
+      "address": "aws_security_group.web",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "arn": "arn:aws:ec2:us-east-1:123456789012:security-group/sg-0123456789abcdef0",
+          "description": "Ingress for the public web tier",
+          "egress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "Allow all outbound traffic",
+              "from_port": 0,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "-1",
+              "security_groups": [],
+              "self": false,
+              "to_port": 0
+            }
+          ],
+          "id": "sg-0123456789abcdef0",
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTPS from the internet",
+              "from_port": 443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTP from the internet (redirects to HTTPS)",
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            }
+          ],
+          "name": "web-tier-sg",
+          "name_prefix": "",
+          "owner_id": "123456789012",
+          "revoke_rules_on_delete": false,
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "timeouts": null,
+          "vpc_id": "vpc-0a1b2c3d4e5f67890"
+        },
+        "after": {
+          "arn": "arn:aws:ec2:us-east-1:123456789012:security-group/sg-0123456789abcdef0",
+          "description": "Ingress for the public web tier",
+          "egress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "Allow all outbound traffic",
+              "from_port": 0,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "-1",
+              "security_groups": [],
+              "self": false,
+              "to_port": 0
+            }
+          ],
+          "id": "sg-0123456789abcdef0",
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTPS from the internet",
+              "from_port": 8443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 8443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTP from the internet (redirects to HTTPS)",
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            }
+          ],
+          "name": "web-tier-sg",
+          "name_prefix": "",
+          "owner_id": "123456789012",
+          "revoke_rules_on_delete": false,
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "timeouts": null,
+          "vpc_id": "vpc-0a1b2c3d4e5f67890"
+        },
+        "after_unknown": {},
+        "before_sensitive": {
+          "egress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            },
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "tags": {},
+          "tags_all": {}
+        },
+        "after_sensitive": {
+          "egress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            },
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "tags": {},
+          "tags_all": {}
+        }
+      }
+    }
+  ],
+  "resource_changes": [
+    {
+      "address": "aws_instance.web",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "no-op"
+        ],
+        "before": {
+          "ami": "ami-0c02fb55956c7d316",
+          "arn": "arn:aws:ec2:us-east-1:123456789012:instance/i-0abc1234def567890",
+          "associate_public_ip_address": true,
+          "availability_zone": "us-east-1a",
+          "id": "i-0abc1234def567890",
+          "instance_state": "running",
+          "instance_type": "t3.micro",
+          "metadata_options": [
+            {
+              "http_endpoint": "enabled",
+              "http_put_response_hop_limit": 1,
+              "http_tokens": "required",
+              "instance_metadata_tags": "disabled"
+            }
+          ],
+          "private_ip": "10.0.1.25",
+          "public_ip": "198.51.100.24",
+          "subnet_id": "subnet-0123456789abcdef0",
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-01"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-01"
+          },
+          "vpc_security_group_ids": [
+            "sg-0123456789abcdef0"
+          ]
+        },
+        "after": {
+          "ami": "ami-0c02fb55956c7d316",
+          "arn": "arn:aws:ec2:us-east-1:123456789012:instance/i-0abc1234def567890",
+          "associate_public_ip_address": true,
+          "availability_zone": "us-east-1a",
+          "id": "i-0abc1234def567890",
+          "instance_state": "running",
+          "instance_type": "t3.micro",
+          "metadata_options": [
+            {
+              "http_endpoint": "enabled",
+              "http_put_response_hop_limit": 1,
+              "http_tokens": "required",
+              "instance_metadata_tags": "disabled"
+            }
+          ],
+          "private_ip": "10.0.1.25",
+          "public_ip": "198.51.100.24",
+          "subnet_id": "subnet-0123456789abcdef0",
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-01"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-01"
+          },
+          "vpc_security_group_ids": [
+            "sg-0123456789abcdef0"
+          ]
+        },
+        "after_unknown": {},
+        "before_sensitive": {
+          "metadata_options": [
+            {}
+          ],
+          "tags": {},
+          "tags_all": {},
+          "vpc_security_group_ids": [
+            false
+          ]
+        },
+        "after_sensitive": {
+          "metadata_options": [
+            {}
+          ],
+          "tags": {},
+          "tags_all": {},
+          "vpc_security_group_ids": [
+            false
+          ]
+        }
+      }
+    },
+    {
+      "address": "aws_security_group.web",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "arn": "arn:aws:ec2:us-east-1:123456789012:security-group/sg-0123456789abcdef0",
+          "description": "Ingress for the public web tier",
+          "egress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "Allow all outbound traffic",
+              "from_port": 0,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "-1",
+              "security_groups": [],
+              "self": false,
+              "to_port": 0
+            }
+          ],
+          "id": "sg-0123456789abcdef0",
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTPS from the internet",
+              "from_port": 8443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 8443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTP from the internet (redirects to HTTPS)",
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            }
+          ],
+          "name": "web-tier-sg",
+          "name_prefix": "",
+          "owner_id": "123456789012",
+          "revoke_rules_on_delete": false,
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "timeouts": null,
+          "vpc_id": "vpc-0a1b2c3d4e5f67890"
+        },
+        "after": {
+          "arn": "arn:aws:ec2:us-east-1:123456789012:security-group/sg-0123456789abcdef0",
+          "description": "Ingress for the public web tier",
+          "egress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "Allow all outbound traffic",
+              "from_port": 0,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "-1",
+              "security_groups": [],
+              "self": false,
+              "to_port": 0
+            }
+          ],
+          "id": "sg-0123456789abcdef0",
+          "ingress": [
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTPS from the internet",
+              "from_port": 443,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 443
+            },
+            {
+              "cidr_blocks": [
+                "0.0.0.0/0"
+              ],
+              "description": "HTTP from the internet (redirects to HTTPS)",
+              "from_port": 80,
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "protocol": "tcp",
+              "security_groups": [],
+              "self": false,
+              "to_port": 80
+            }
+          ],
+          "name": "web-tier-sg",
+          "name_prefix": "",
+          "owner_id": "123456789012",
+          "revoke_rules_on_delete": false,
+          "tags": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "tags_all": {
+            "Environment": "production",
+            "ManagedBy": "terraform",
+            "Name": "web-tier-sg"
+          },
+          "timeouts": null,
+          "vpc_id": "vpc-0a1b2c3d4e5f67890"
+        },
+        "after_unknown": {},
+        "before_sensitive": {
+          "egress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            },
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "tags": {},
+          "tags_all": {}
+        },
+        "after_sensitive": {
+          "egress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "ingress": [
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            },
+            {
+              "cidr_blocks": [
+                false
+              ],
+              "ipv6_cidr_blocks": [],
+              "prefix_list_ids": [],
+              "security_groups": []
+            }
+          ],
+          "tags": {},
+          "tags_all": {}
+        }
+      }
+    }
+  ],
+  "relevant_attributes": [
+    {
+      "resource": "aws_security_group.web",
+      "attribute": [
+        "ingress"
+      ]
+    }
+  ]
+}
